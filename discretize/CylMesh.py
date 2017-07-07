@@ -1291,7 +1291,9 @@ class CylMesh(
     ####################################################
 
     def _deflationMatrix(self, location, withHanging=True, asOnes=False):
-        assert location in ['N', 'F', 'Fx', 'Fy', 'Fz', 'E', 'Ex', 'Ey', 'Ez', 'CC'], (
+        assert location in [
+            'N', 'F', 'Fx', 'Fy', 'Fz', 'E', 'Ex', 'Ey', 'Ez', 'CC'
+        ], (
             'Location must be a grid location, not {}'.format(location)
         )
         if location == 'CC':
@@ -1306,7 +1308,8 @@ class CylMesh(
                 elif location == 'F':
                     return sp.block_diag([
                         self._deflationMatrix(
-                            location+coord, withHanging=withHanging, asOnes=asOnes
+                            location+coord, withHanging=withHanging,
+                            asOnes=asOnes
                         )
                         for coord in ['x', 'z']
                     ])
@@ -1329,13 +1332,9 @@ class CylMesh(
             entries = np.ones(len(values))
 
             if asOnes is False and len(hang) > 0:
-                repeats = set(values)
-                repeat_locs = [
-                    (np.r_[values] == repeat).nonzero()[0]
-                    for repeat in repeats
-                ]
-                for loc in repeat_locs:
-                    entries[loc] = 1./len(loc)
+                repeats, repeat_locs = np.unique(values, return_index=True)
+                # for loc in repeat_locs:
+                #     entries[loc] = 1./len(loc)
 
             Hang = sp.csr_matrix(
                 (entries, (values, list(hang.keys()))),
