@@ -1,0 +1,3 @@
+[flake8]
+exclude =
+    discretize/__init__.py

@@ -1,5 +1,7 @@
 .PHONY: build coverage lint graphs tests docs clean clean_pyc clean_c clean_so clean_cython deploy
 
+PACKAGE_NAME=$(PACKAGE_NAME)
+
 build:
 	mkdir -p docs/modules/generated
 	python setup.py build_ext -i -b .
@@ -9,14 +11,14 @@ build_cython:
 	python setup.py build_ext -i cython
 
 coverage:
-	nosetests --logging-level=INFO --with-coverage --cover-package=discretize --cover-html
+	nosetests --logging-level=INFO --with-coverage --cover-package=$(PACKAGE_NAME) --cover-html
 	open cover/index.html
 
 lint:
-	pylint --output-format=html discretize > pylint.html
+	pylint $(PACKAGE_NAME)
 
 graphs:
-	pyreverse -my -A -o pdf -p discretize discretize/**.py discretize/**/**.py
+	pyreverse -my -A -o pdf -p $(PACKAGE_NAME) $(PACKAGE_NAME)/**.py $(PACKAGE_NAME)/**/**.py
 
 tests:
 	nosetests --logging-level=INFO
