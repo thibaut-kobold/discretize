@@ -20,5 +20,4 @@ def configuration(parent_package='', top_path=None):
         include_dirs=[get_numpy_include_dirs()]
     )
 
-    config.add_subpackage('utils')
     return config

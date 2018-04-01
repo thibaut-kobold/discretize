@@ -65,7 +65,8 @@ setup(
         'matplotlib',
         'pymatsolver>=0.1.2',
         'properties>=0.3.6b0',
-        'vectormath'
+        'vectormath',
+        'matrixutils>=0.0.2'
     ],
     author="Rowan Cockett",
     author_email="rowanc1@gmail.com",
