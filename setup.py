@@ -66,7 +66,7 @@ setup(
         'pymatsolver>=0.1.2',
         'properties>=0.3.6b0',
         'vectormath',
-        'matrixutils>=0.0.2',
+        'matrixutils>=0.0.3b0',
     ],
     author="Rowan Cockett",
     author_email="rowanc1@gmail.com",
