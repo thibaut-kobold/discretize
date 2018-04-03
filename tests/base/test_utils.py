@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import scipy.sparse as sp
 from discretize.utils import (
-    sdiag, sub2ind, ndgrid, mkvc, isScalar,
+    sdiag, sub2ind, ndgrid, mkvc,
     inv2X2BlockDiagonal, inv3X3BlockDiagonal,
     invPropertyTensor, makePropertyTensor, indexCube,
     ind2sub, asArray_N_x_Dim, TensorType, Zero, Identity,
@@ -205,14 +205,6 @@ class TestSequenceFunctions(unittest.TestCase):
             self.assertTrue(np.linalg.norm(Z.todense().ravel(), 2) < TOL)
             Z = B2*A - sp.identity(M.nC*3)
             self.assertTrue(np.linalg.norm(Z.todense().ravel(), 2) < TOL)
-
-    def test_isScalar(self):
-        self.assertTrue(isScalar(1.))
-        self.assertTrue(isScalar(1))
-        if sys.version_info < (3, ):
-            self.assertTrue(isScalar(long(1)))
-        self.assertTrue(isScalar(np.r_[1.]))
-        self.assertTrue(isScalar(np.r_[1]))
 
     def test_asArray_N_x_Dim(self):
 
@@ -422,6 +414,36 @@ class TestMeshUtils(unittest.TestCase):
         assert meshCore3d.vectorCCy.max() < xzlim3d[1, :].max()
         assert meshCore3d.vectorCCz.min() > xzlim3d[2, :].min()
         assert meshCore3d.vectorCCz.max() < xzlim3d[2, :].max()
+
+    def test_mesh_tensor(self):
+
+        cases = [
+            (
+                [1, 1, 1],
+                [1, 1, 1]
+            ),
+            (
+                [1, (3, 5)],
+                [1, 3, 3, 3, 3, 3]
+            ),
+            (
+                [(2, 1), 1, (3, 5)],
+                [2, 1, 3, 3, 3, 3, 3]
+            ),
+            (
+                [(2, 2, 2), (2, 2, -2), 2, (2, 3, 2)],
+                [4, 8, 8, 4, 2, 4, 8, 16]
+            )
+        ]
+        for case, value in cases:
+            print(discretize.utils.meshTensor(case))
+            assert np.allclose(
+                discretize.utils.meshTensor(case),
+                value
+            )
+
+        with self.assertRaises(ValueError):
+            discretize.utils.meshTensor([(2, 1), '?', (3, 5)])
 
 
 if __name__ == '__main__':
