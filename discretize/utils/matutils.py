@@ -5,29 +5,30 @@ import scipy.sparse as sp
 from matrixutils import (
     mkvc, sdiag, sdInv, speye, kron3, spzeros, ddx, av, av_extrap, ndgrid,
     ind2sub, sub2ind, getSubArray, inv3X3BlockDiagonal, inv2X2BlockDiagonal,
-    Zero, Identity, isScalar
+    Zero, Identity
 )
+
 
 class TensorType(object):
     def __init__(self, M, tensor):
         if tensor is None:  # default is ones
             self._tt = -1
             self._tts = 'none'
-        elif isScalar(tensor):
+        elif np.isscalar(tensor) or tensor.size == 1:
             self._tt = 0
             self._tts = 'scalar'
         elif tensor.size == M.nC:
             self._tt = 1
             self._tts = 'isotropic'
         elif (
-            (M.dim == 2 and tensor.size == M.nC*2) or
-            (M.dim == 3 and tensor.size == M.nC*3)
+            (M.dim == 2 and tensor.size == M.nC * 2) or
+            (M.dim == 3 and tensor.size == M.nC * 3)
         ):
             self._tt = 2
             self._tts = 'anisotropic'
         elif (
-            (M.dim == 2 and tensor.size == M.nC*3) or
-            (M.dim == 3 and tensor.size == M.nC*6)
+            (M.dim == 2 and tensor.size == M.nC * 3) or
+            (M.dim == 3 and tensor.size == M.nC * 6)
         ):
             self._tt = 3
             self._tts = 'tensor'
@@ -59,7 +60,7 @@ def makePropertyTensor(M, tensor):
     if tensor is None:  # default is ones
         tensor = np.ones(M.nC)
 
-    if isScalar(tensor):
+    if np.isscalar(tensor) or tensor.size == 1:
         tensor = tensor * np.ones(M.nC)
 
     propType = TensorType(M, tensor)
@@ -67,12 +68,12 @@ def makePropertyTensor(M, tensor):
         Sigma = sp.kron(sp.identity(M.dim), sdiag(mkvc(tensor)))
     elif propType == 2:  # Diagonal tensor
         Sigma = sdiag(mkvc(tensor))
-    elif M.dim == 2 and tensor.size == M.nC*3:  # Fully anisotropic, 2D
+    elif M.dim == 2 and tensor.size == M.nC * 3:  # Fully anisotropic, 2D
         tensor = tensor.reshape((M.nC, 3), order='F')
         row1 = sp.hstack((sdiag(tensor[:, 0]), sdiag(tensor[:, 2])))
         row2 = sp.hstack((sdiag(tensor[:, 2]), sdiag(tensor[:, 1])))
         Sigma = sp.vstack((row1, row2))
-    elif M.dim == 3 and tensor.size == M.nC*6:  # Fully anisotropic, 3D
+    elif M.dim == 3 and tensor.size == M.nC * 6:  # Fully anisotropic, 3D
         tensor = tensor.reshape((M.nC, 6), order='F')
         row1 = sp.hstack(
             (sdiag(tensor[:, 0]), sdiag(tensor[:, 3]), sdiag(tensor[:, 4]))
@@ -94,18 +95,18 @@ def invPropertyTensor(M, tensor, returnMatrix=False):
 
     propType = TensorType(M, tensor)
 
-    if isScalar(tensor):
-        T = 1./tensor
+    if np.isscalar(tensor) or tensor.size == 1:
+        T = 1. / tensor
     elif propType < 3:  # Isotropic or Diagonal
-        T = 1./mkvc(tensor)  # ensure it is a vector.
-    elif M.dim == 2 and tensor.size == M.nC*3:  # Fully anisotropic, 2D
+        T = 1. / mkvc(tensor)  # ensure it is a vector.
+    elif M.dim == 2 and tensor.size == M.nC * 3:  # Fully anisotropic, 2D
         tensor = tensor.reshape((M.nC, 3), order='F')
         B = inv2X2BlockDiagonal(tensor[:, 0], tensor[:, 2],
                                 tensor[:, 2], tensor[:, 1],
                                 returnMatrix=False)
         b11, b12, b21, b22 = B
         T = np.r_[b11, b22, b12]
-    elif M.dim == 3 and tensor.size == M.nC*6:  # Fully anisotropic, 3D
+    elif M.dim == 3 and tensor.size == M.nC * 6:  # Fully anisotropic, 3D
         tensor = tensor.reshape((M.nC, 6), order='F')
         B = inv3X3BlockDiagonal(tensor[:, 0], tensor[:, 3], tensor[:, 4],
                                 tensor[:, 3], tensor[:, 1], tensor[:, 5],
@@ -120,5 +121,3 @@ def invPropertyTensor(M, tensor, returnMatrix=False):
         return makePropertyTensor(M, T)
 
     return T
-
-
