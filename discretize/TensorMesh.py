@@ -574,7 +574,7 @@ class TensorMesh(
         mesh = Mesh.TensorMesh([hx, hy, hz])
 
     Example of a padded tensor mesh using
-    :func:`discretize.utils.meshutils.meshTensor`:
+    :func:`matrixutils.meshutils.meshTensor`:
 
     .. plot::
         :include-source:
