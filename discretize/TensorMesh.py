@@ -45,7 +45,7 @@ class BaseTensorMesh(BaseMesh):
         # build h
         h = list(range(len(h_in)))
         for i, h_i in enumerate(h_in):
-            if utils.isScalar(h_i) and type(h_i) is not np.ndarray:
+            if np.isscalar(h_i):
                 # This gives you something over the unit cube.
                 h_i = self._unitDimensions[i] * np.ones(int(h_i))/int(h_i)
             elif type(h_i) is list:
@@ -65,7 +65,7 @@ class BaseTensorMesh(BaseMesh):
             assert len(h) == len(x0_in), "Dimension mismatch. x0 != len(h)"
             for i in range(len(h)):
                 x_i, h_i = x0_in[i], h[i]
-                if utils.isScalar(x_i):
+                if np.isscalar(x_i) and not isinstance(x_i, str):
                     x0[i] = x_i
                 elif x_i == '0':
                     x0[i] = 0.0
@@ -407,27 +407,27 @@ class BaseTensorMesh(BaseMesh):
             prop = np.ones(self.nC)
 
         if invProp:
-            prop = 1./prop
+            prop = 1. / prop
 
-        if utils.isScalar(prop):
-            prop = prop*np.ones(self.nC)
+        if np.isscalar(prop) or prop.size == 1:
+            prop = prop * np.ones(self.nC)
 
         # number of elements we are averaging (equals dim for regular
         # meshes, but for cyl, where we use symmetry, it is 1 for edge
         # variables and 2 for face variables)
         if self._meshType == 'CYL':
-            n_elements = np.sum(getattr(self, 'vn'+projType).nonzero())
+            n_elements = np.sum(getattr(self, 'vn' + projType).nonzero())
         else:
             n_elements = self.dim
 
         # Isotropic? or anisotropic?
         if prop.size == self.nC:
-            Av = getattr(self, 'ave'+projType+'2CC')
+            Av = getattr(self, 'ave' + projType + '2CC')
             Vprop = self.vol * utils.mkvc(prop)
             M = n_elements * utils.sdiag(Av.T * Vprop)
 
-        elif prop.size == self.nC*self.dim:
-            Av = getattr(self, 'ave'+projType+'2CCV')
+        elif prop.size == self.nC * self.dim:
+            Av = getattr(self, 'ave' + projType + '2CCV')
 
             # if cyl, then only certain components are relevant due to symmetry
             # for faces, x, z matters, for edges, y (which is theta) matters

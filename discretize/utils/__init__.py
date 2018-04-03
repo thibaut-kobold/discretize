@@ -7,7 +7,7 @@ from .matutils import (
     makePropertyTensor, invPropertyTensor, Zero,
     Identity
 )
-from .codeutils import (isScalar, asArray_N_x_Dim)
+from .codeutils import (asArray_N_x_Dim)
 from .meshutils import (
     exampleLrmGrid, meshTensor, closestPoints, ExtractCoreMesh,
     random_model
