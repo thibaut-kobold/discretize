@@ -10,14 +10,15 @@ def configuration(parent_package='', top_path=None):
     ext = 'TreeUtils'
     try:
         from Cython.Build import cythonize
-        cythonize(os.path.join(base_path, ext+'.pyx'))
+        cythonize(os.path.join(base_path, ext + '.pyx'))
     except ImportError:
         pass
 
     config.add_extension(
         ext,
-        sources=[ext+'.c'],
+        sources=[ext + '.c'],
         include_dirs=[get_numpy_include_dirs()]
     )
 
+    config.add_subpackage('utils')
     return config
