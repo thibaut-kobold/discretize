@@ -6,12 +6,15 @@ import scipy.sparse as sp
 from scipy.constants import pi
 
 from .utils import (
-    kron3, ndgrid, av, speye, ddx, sdiag, interpmat, spzeros, cyl2cart
+    kron3, ndgrid, av, speye, ddx, sdiag, interpmat, spzeros, cyl2cart,
+    cart2cyl, mkvc
 )
 from .TensorMesh import BaseTensorMesh, BaseRectangularMesh
 from .InnerProducts import InnerProducts
 from .View import CylView
 from .DiffOperators import DiffOperators
+
+from scipy.spatial import cKDTree
 
 
 class CylMesh(
@@ -1477,7 +1480,9 @@ class CylMesh(
     # Interpolation
     ####################################################
 
-    def getInterpolationMat(self, loc, locType='CC', zerosOutside=False):
+    def getInterpolationMat(
+        self, loc, locType='CC', zerosOutside=False, npoints=10
+    ):
         """ Produces interpolation matrix
 
         :param numpy.ndarray loc: Location of points to interpolate to
@@ -1499,28 +1504,61 @@ class CylMesh(
             'CCVy'  -> y-component of vector field defined on cell centers
             'CCVz'  -> z-component of vector field defined on cell centers
         """
-        if self.isSymmetric and locType in ['Ex', 'Ez', 'Fy']:
-            raise Exception(
-                "Symmetric CylMesh does not support {0!s} interpolation, "
-                "as this variable does not exist.".format(locType)
-            )
 
-        if locType in ['CCVx', 'CCVy', 'CCVz']:
-            Q = interpmat(loc, *self.getTensor('CC'))
-            Z = spzeros(loc.shape[0], self.nC)
-            if locType == 'CCVx':
-                Q = sp.hstack([Q, Z])
-            elif locType == 'CCVy':
-                Q = sp.hstack([Q])
-            elif locType == 'CCVz':
-                Q = sp.hstack([Z, Q])
+        if self.isSymmetric:
+            if locType in ['Ex', 'Ez', 'Fy']:
+                raise Exception(
+                    "Symmetric CylMesh does not support {0!s} interpolation, "
+                    "as this variable does not exist.".format(locType)
+                )
 
-            if zerosOutside:
-                Q[indZeros, :] = 0
+            if locType in ['CCVx', 'CCVy', 'CCVz']:
+                Q = interpmat(loc, *self.getTensor('CC'))
+                Z = spzeros(loc.shape[0], self.nC)
+                if locType == 'CCVx':
+                    Q = sp.hstack([Q, Z])
+                elif locType == 'CCVy':
+                    Q = sp.hstack([Q])
+                elif locType == 'CCVz':
+                    Q = sp.hstack([Z, Q])
 
-            return Q.tocsr()
+                if zerosOutside:
+                    Q[indZeros, :] = 0
 
-        return self._getInterpolationMat(loc, locType, zerosOutside)
+                return Q.tocsr()
+
+            return self._getInterpolationMat(loc, locType, zerosOutside)
+
+        # 3D cyl mesh - convert to cartesian, use KDTree to build interpolation
+        # matrix
+        loc = cyl2cart(loc)
+        grid = self.cartesianGrid(locType)
+
+        tree = cKDTree(grid)
+        d, ii = tree.query(loc, k=npoints)
+
+        weights = 1./d  # d**2?
+        weights = sdiag(1./weights.sum(1))*weights
+
+        w = mkvc(weights)
+        ci = mkvc(ii)
+        ri = np.kron(np.ones(npoints), np.arange(0, 40, dtype=int))
+        Q = sp.csr_matrix(
+            (w, (ri, ci)), shape=(40, getattr(self, "n{}".format(locType)))
+        )
+
+        Zx = spzeros(loc.shape[0], getattr(self, "n{}x".format(locType[0])))
+        Zy = spzeros(loc.shape[0], getattr(self, "n{}y".format(locType[0])))
+        Zz = spzeros(loc.shape[0], getattr(self, "n{}z".format(locType[0])))
+
+        if locType.endswith("x"):
+            return sp.hstack([Q, Zy, Zz])
+        elif locType.endswith("y"):
+            return sp.hstack([Zx, Q, Zz])
+        elif locType.endswith("z"):
+            return sp.hstack([Zx, Zy, Q])
+
+
 
     def cartesianGrid(self, locType='CC', theta_shift=None):
         """
