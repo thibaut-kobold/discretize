@@ -1481,7 +1481,7 @@ class CylMesh(
     ####################################################
 
     def getInterpolationMat(
-        self, loc, locType='CC', zerosOutside=False, npoints=10
+        self, loc, locType='CC', zerosOutside=False, npoints=3, epsilon=1e-10
     ):
         """ Produces interpolation matrix
 
@@ -1537,7 +1537,7 @@ class CylMesh(
         tree = cKDTree(grid)
         d, ii = tree.query(loc, k=npoints)
 
-        weights = 1./d  # d**2?
+        weights = 1./(d**2 + epsilon) #?
         weights = sdiag(1./weights.sum(1))*weights
 
         w = mkvc(weights)
