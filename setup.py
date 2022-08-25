@@ -31,12 +31,12 @@ with open("README.rst") as f:
 
 build_requires = [
     "numpy>=1.8",
-    "cython>=0.2",
+    "Cython>=0.2",
     "setuptools_scm",
 ]
 
 install_requires = [
-    "cython>=0.29",
+    "Cython>=0.29",
     "numpy>=1.8",
     "scipy>=0.13",
 ]
