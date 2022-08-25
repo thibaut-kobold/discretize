@@ -36,6 +36,7 @@ build_requires = [
 ]
 
 install_requires = [
+    "cython>=0.29",
     "numpy>=1.8",
     "scipy>=0.13",
 ]
