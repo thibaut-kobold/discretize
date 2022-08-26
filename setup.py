@@ -44,7 +44,7 @@ metadata = dict(
     name="discretize",
     packages=find_packages(include=["discretize", "discretize.*"]),
     python_requires=">=3.7",
-    setup_requires=build_requires,
+    #setup_requires=build_requires,
     install_requires=install_requires,
     author="SimPEG developers",
     author_email="rowanc1@gmail.com",
