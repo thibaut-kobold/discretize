@@ -8,7 +8,7 @@ Discretization tools for finite volume and inverse problems.
 import os
 import sys
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
@@ -44,7 +44,7 @@ metadata = dict(
     name="discretize",
     packages=find_packages(include=["discretize", "discretize.*"]),
     python_requires=">=3.7",
-    #setup_requires=build_requires,
+    # setup_requires=build_requires,
     install_requires=install_requires,
     author="SimPEG developers",
     author_email="rowanc1@gmail.com",
@@ -58,7 +58,7 @@ metadata = dict(
     platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
     use_scm_version={
         "write_to": os.path.join("discretize", "version.py"),
-    }
+    },
 )
 if len(sys.argv) >= 2 and (
     "--help" in sys.argv[1:]
@@ -71,13 +71,14 @@ if len(sys.argv) >= 2 and (
     # present in the system.
     pass
 else:
-    from setuptools.extension import Extension
-    from Cython.Build import cythonize
     import numpy as np
+    from Cython.Build import cythonize
+    from setuptools.extension import Extension
 
     ext_kwargs = {}
     if os.environ.get("DISC_COV", None) is not None:
         ext_kwargs["define_macros"] = [("CYTHON_TRACE_NOGIL", 1)]
+        ext_kwargs["language_level"] = 3
 
     extensions = [
         Extension(
@@ -97,9 +98,9 @@ else:
             ["discretize/_extensions/simplex_helpers.pyx"],
             include_dirs=[np.get_include()],
             **ext_kwargs
-        )
+        ),
     ]
 
-    metadata['ext_modules'] = cythonize(extensions)
+    metadata["ext_modules"] = cythonize(extensions)
 
 setup(**metadata)
